@@ -27,7 +27,7 @@ type AppInfo struct {
 
 func main() {
 	rootCmd := &cobra.Command{
-		Use:   "appcleaner",
+		Use:   "zaap",
 		Short: "macOS application cleanup utility",
 		Run:   run,
 	}
