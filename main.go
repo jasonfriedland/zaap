@@ -58,7 +58,7 @@ func run(cmd *cobra.Command, args []string) {
 }
 
 func listApplications() {
-	apps, err := getApplications()
+	apps, err := getApplications("/Applications")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
@@ -72,7 +72,7 @@ func listApplications() {
 }
 
 func interactiveMode() {
-	apps, err := getApplications()
+	apps, err := getApplications("/Applications")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
@@ -180,7 +180,7 @@ func interactiveMode() {
 }
 
 func deleteApp(name string) {
-	apps, err := getApplications()
+	apps, err := getApplications("/Applications")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
@@ -240,8 +240,8 @@ func deleteApp(name string) {
 	}
 }
 
-func getApplications() ([]AppInfo, error) {
-	entries, err := os.ReadDir("/Applications")
+func getApplications(dir string) ([]AppInfo, error) {
+	entries, err := os.ReadDir(dir)
 	if err != nil {
 		return nil, err
 	}
@@ -251,7 +251,7 @@ func getApplications() ([]AppInfo, error) {
 		if strings.HasSuffix(entry.Name(), ".app") {
 			apps = append(apps, AppInfo{
 				Name: strings.TrimSuffix(entry.Name(), ".app"),
-				Path: filepath.Join("/Applications", entry.Name()),
+				Path: filepath.Join(dir, entry.Name()),
 			})
 		}
 	}

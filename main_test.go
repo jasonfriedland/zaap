@@ -8,15 +8,19 @@ import (
 )
 
 func TestGetApplications(t *testing.T) {
-	_ = os.Setenv("HOME", t.TempDir())
+	tmpDir := t.TempDir()
+	appsDir := filepath.Join(tmpDir, "Applications")
+	if err := os.MkdirAll(appsDir, 0755); err != nil {
+		t.Fatalf("failed to create Applications dir: %v", err)
+	}
 
-	apps, err := getApplications()
+	apps, err := getApplications(appsDir)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
 	if len(apps) == 0 {
-		t.Log("no apps in /Applications, test may not be useful")
+		t.Log("no apps in test Applications dir, test may not be useful")
 	}
 
 	for _, app := range apps {
