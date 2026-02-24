@@ -23,6 +23,12 @@ type AppInfo struct {
 	Path            string
 	BundleID        string
 	AssociatedFiles []string
+	ControlPanels   []string
+	StartupItems    []string
+	QuickLook       []string
+	ScreenSavers    []string
+	InputMethods    []string
+	Fonts           []string
 }
 
 func main() {
@@ -107,13 +113,16 @@ func interactiveMode() {
 	fmt.Printf("\nSelected: %s\n", app.Name)
 	fmt.Printf("Location: %s\n", app.Path)
 
-	if len(app.AssociatedFiles) > 0 {
-		fmt.Println("\nAssociated files found:")
-		for _, f := range app.AssociatedFiles {
-			fmt.Printf("  - %s\n", f)
-		}
-	} else {
-		fmt.Println("\nNo associated files found.")
+	printCategory("Associated files", app.AssociatedFiles)
+	printCategory("Control Panels", app.ControlPanels)
+	printCategory("Startup Items", app.StartupItems)
+	printCategory("QuickLook Plugins", app.QuickLook)
+	printCategory("Screen Savers", app.ScreenSavers)
+	printCategory("Input Methods", app.InputMethods)
+	printCategory("Fonts", app.Fonts)
+
+	if len(app.AssociatedFiles)+len(app.ControlPanels)+len(app.StartupItems)+len(app.QuickLook)+len(app.ScreenSavers)+len(app.InputMethods)+len(app.Fonts) == 0 {
+		fmt.Println("\nNo associated items found.")
 	}
 
 	fmt.Print("\nDelete this application? (y/n): ")
@@ -135,13 +144,21 @@ func interactiveMode() {
 		}
 	}
 
-	if len(app.AssociatedFiles) > 0 {
-		fmt.Println("\nDelete associated files? (y/n/all): ")
+	allItems := app.AssociatedFiles
+	allItems = append(allItems, app.ControlPanels...)
+	allItems = append(allItems, app.StartupItems...)
+	allItems = append(allItems, app.QuickLook...)
+	allItems = append(allItems, app.ScreenSavers...)
+	allItems = append(allItems, app.InputMethods...)
+	allItems = append(allItems, app.Fonts...)
+
+	if len(allItems) > 0 {
+		fmt.Println("\nDelete associated items? (y/n/all): ")
 		line, _ = reader.ReadString('\n')
 		line = strings.TrimSpace(line)
 
 		if line == "all" {
-			for _, f := range app.AssociatedFiles {
+			for _, f := range allItems {
 				if dryRun {
 					fmt.Printf("Would delete: %s\n", f)
 				} else {
@@ -153,7 +170,7 @@ func interactiveMode() {
 				}
 			}
 		} else if strings.ToLower(line) == "y" {
-			for _, f := range app.AssociatedFiles {
+			for _, f := range allItems {
 				fmt.Printf("Delete %s? (y/n): ", filepath.Base(f))
 				line, _ := reader.ReadString('\n')
 				line = strings.TrimSpace(line)
@@ -206,12 +223,13 @@ func deleteApp(name string) {
 	fmt.Printf("Selected: %s\n", target.Name)
 	fmt.Printf("Location: %s\n", target.Path)
 
-	if len(target.AssociatedFiles) > 0 {
-		fmt.Println("\nAssociated files found:")
-		for _, f := range target.AssociatedFiles {
-			fmt.Printf("  - %s\n", f)
-		}
-	}
+	printCategory("Associated files", target.AssociatedFiles)
+	printCategory("Control Panels", target.ControlPanels)
+	printCategory("Startup Items", target.StartupItems)
+	printCategory("QuickLook Plugins", target.QuickLook)
+	printCategory("Screen Savers", target.ScreenSavers)
+	printCategory("Input Methods", target.InputMethods)
+	printCategory("Fonts", target.Fonts)
 
 	action := "Would delete"
 	if !dryRun {
@@ -223,7 +241,15 @@ func deleteApp(name string) {
 	}
 	fmt.Printf("%s: %s\n", action, target.Path)
 
-	for _, f := range target.AssociatedFiles {
+	allItems := target.AssociatedFiles
+	allItems = append(allItems, target.ControlPanels...)
+	allItems = append(allItems, target.StartupItems...)
+	allItems = append(allItems, target.QuickLook...)
+	allItems = append(allItems, target.ScreenSavers...)
+	allItems = append(allItems, target.InputMethods...)
+	allItems = append(allItems, target.Fonts...)
+
+	for _, f := range allItems {
 		if dryRun {
 			fmt.Printf("Would delete: %s\n", f)
 		} else {
@@ -311,6 +337,114 @@ func scanAssociatedFiles(app *AppInfo) {
 			app.AssociatedFiles = append(app.AssociatedFiles, loc)
 		}
 	}
+
+	scanControlPanels(app, bundleID)
+	scanStartupItems(app, bundleID)
+	scanQuickLook(app, bundleID)
+	scanScreenSavers(app, bundleID)
+	scanInputMethods(app, bundleID)
+	scanFonts(app, bundleID)
+}
+
+func scanControlPanels(app *AppInfo, bundleID string) {
+	home := os.Getenv("HOME")
+	locations := []string{
+		filepath.Join(home, "Library/PreferencePanes"),
+		"/Library/PreferencePanes",
+	}
+	for _, dir := range locations {
+		if entries, err := os.ReadDir(dir); err == nil {
+			for _, entry := range entries {
+				if strings.Contains(strings.ToLower(entry.Name()), strings.ToLower(app.Name)) {
+					app.ControlPanels = append(app.ControlPanels, filepath.Join(dir, entry.Name()))
+				}
+			}
+		}
+	}
+}
+
+func scanStartupItems(app *AppInfo, bundleID string) {
+	home := os.Getenv("HOME")
+	locations := []string{
+		filepath.Join(home, "Library/LaunchAgents"),
+		"/Library/LaunchAgents",
+		filepath.Join(home, "Library/LaunchDaemons"),
+		"/Library/LaunchDaemons",
+	}
+	for _, dir := range locations {
+		if entries, err := os.ReadDir(dir); err == nil {
+			for _, entry := range entries {
+				name := strings.ToLower(entry.Name())
+				appName := strings.ToLower(app.Name)
+				if strings.Contains(name, bundleID) || strings.Contains(name, appName) {
+					app.StartupItems = append(app.StartupItems, filepath.Join(dir, entry.Name()))
+				}
+			}
+		}
+	}
+}
+
+func scanQuickLook(app *AppInfo, bundleID string) {
+	home := os.Getenv("HOME")
+	locations := []string{
+		filepath.Join(home, "Library/QuickLook"),
+		"/Library/QuickLook",
+	}
+	for _, dir := range locations {
+		if entries, err := os.ReadDir(dir); err == nil {
+			for _, entry := range entries {
+				if strings.Contains(strings.ToLower(entry.Name()), strings.ToLower(app.Name)) {
+					app.QuickLook = append(app.QuickLook, filepath.Join(dir, entry.Name()))
+				}
+			}
+		}
+	}
+}
+
+func scanScreenSavers(app *AppInfo, bundleID string) {
+	home := os.Getenv("HOME")
+	dir := filepath.Join(home, "Library/Screen Savers")
+	if entries, err := os.ReadDir(dir); err == nil {
+		for _, entry := range entries {
+			if strings.Contains(strings.ToLower(entry.Name()), strings.ToLower(app.Name)) {
+				app.ScreenSavers = append(app.ScreenSavers, filepath.Join(dir, entry.Name()))
+			}
+		}
+	}
+}
+
+func scanInputMethods(app *AppInfo, bundleID string) {
+	home := os.Getenv("HOME")
+	locations := []string{
+		filepath.Join(home, "Library/Input Methods"),
+		"/Library/Input Methods",
+	}
+	for _, dir := range locations {
+		if entries, err := os.ReadDir(dir); err == nil {
+			for _, entry := range entries {
+				if strings.Contains(strings.ToLower(entry.Name()), strings.ToLower(app.Name)) {
+					app.InputMethods = append(app.InputMethods, filepath.Join(dir, entry.Name()))
+				}
+			}
+		}
+	}
+}
+
+func scanFonts(app *AppInfo, bundleID string) {
+	home := os.Getenv("HOME")
+	locations := []string{
+		filepath.Join(home, "Library/Fonts"),
+		"/Library/Fonts",
+	}
+	for _, dir := range locations {
+		if entries, err := os.ReadDir(dir); err == nil {
+			for _, entry := range entries {
+				if strings.Contains(strings.ToLower(entry.Name()), strings.ToLower(app.Name)) {
+					app.Fonts = append(app.Fonts, filepath.Join(dir, entry.Name()))
+				}
+			}
+		}
+	}
 }
 
 func getBundleID(appPath string) string {
@@ -335,4 +469,13 @@ func pathExists(path string) (bool, error) {
 
 func deletePath(path string) error {
 	return os.RemoveAll(path)
+}
+
+func printCategory(name string, items []string) {
+	if len(items) > 0 {
+		fmt.Printf("\n%s:\n", name)
+		for _, f := range items {
+			fmt.Printf("  - %s\n", f)
+		}
+	}
 }
