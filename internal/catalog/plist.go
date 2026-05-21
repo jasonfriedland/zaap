@@ -7,6 +7,7 @@ import (
 	"howett.net/plist"
 )
 
+// BundleID reads CFBundleIdentifier from an app bundle Info.plist.
 func BundleID(appPath string) string {
 	values, err := readInfoPlist(appPath)
 	if err != nil {

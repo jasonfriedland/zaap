@@ -7,6 +7,7 @@ import (
 	"github.com/jasonfriedland/zaap/internal/scanner"
 )
 
+// PrintItems writes scanner items grouped by category.
 func PrintItems(w io.Writer, items []scanner.Item) {
 	grouped := GroupItems(items)
 	for _, category := range scanner.CategoryOrder {
@@ -21,6 +22,7 @@ func PrintItems(w io.Writer, items []scanner.Item) {
 	}
 }
 
+// GroupItems groups scanner items by category.
 func GroupItems(items []scanner.Item) map[scanner.Category][]string {
 	grouped := make(map[scanner.Category][]string)
 	for _, item := range items {

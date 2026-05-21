@@ -6,6 +6,7 @@ import (
 	"strings"
 )
 
+// Applications returns .app bundles found directly under dir.
 func Applications(dir string) ([]App, error) {
 	entries, err := os.ReadDir(dir)
 	if err != nil {

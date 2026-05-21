@@ -9,15 +9,18 @@ import (
 	"github.com/jasonfriedland/zaap/internal/catalog"
 )
 
+// Scanner finds files related to an application.
 type Scanner interface {
 	Scan(ctx context.Context, app catalog.App) Iterator
 }
 
+// Config defines filesystem roots used by scanners.
 type Config struct {
 	HomeDir          string
 	SystemLibraryDir string
 }
 
+// DefaultConfig returns scanner roots for the current machine.
 func DefaultConfig() Config {
 	return Config{
 		HomeDir:          os.Getenv("HOME"),
@@ -25,14 +28,17 @@ func DefaultConfig() Config {
 	}
 }
 
+// Composite runs multiple scanners and deduplicates by path.
 type Composite struct {
 	scanners []Scanner
 }
 
+// NewComposite combines scanners into one scanner.
 func NewComposite(scanners ...Scanner) *Composite {
 	return &Composite{scanners: scanners}
 }
 
+// Default returns the standard zaap scanner set.
 func Default(config Config) *Composite {
 	return NewComposite(
 		AssociatedFiles{Config: config},
@@ -45,6 +51,7 @@ func Default(config Config) *Composite {
 	)
 }
 
+// Scan runs child scanners and returns unique items.
 func (s *Composite) Scan(ctx context.Context, app catalog.App) Iterator {
 	seen := make(map[string]struct{})
 	var items []Item

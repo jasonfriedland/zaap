@@ -11,15 +11,18 @@ import (
 	"github.com/jasonfriedland/zaap/internal/catalog"
 )
 
+// Prompter reads terminal input and writes prompts.
 type Prompter struct {
 	In  *bufio.Reader
 	Out io.Writer
 }
 
+// NewPrompter creates a terminal prompter.
 func NewPrompter(in io.Reader, out io.Writer) Prompter {
 	return Prompter{In: bufio.NewReader(in), Out: out}
 }
 
+// SelectApp asks the user to choose an application.
 func (p Prompter) SelectApp(apps []catalog.App) (catalog.App, bool, error) {
 	fmt.Fprintln(p.Out, "Select an application to delete:")
 	fmt.Fprintln(p.Out, "---------------------------------")
@@ -43,6 +46,7 @@ func (p Prompter) SelectApp(apps []catalog.App) (catalog.App, bool, error) {
 	return apps[selection-1], true, nil
 }
 
+// Confirm asks a yes/no question.
 func (p Prompter) Confirm(prompt string) (bool, error) {
 	fmt.Fprint(p.Out, prompt)
 	line, err := p.readLine()
@@ -52,11 +56,13 @@ func (p Prompter) Confirm(prompt string) (bool, error) {
 	return strings.ToLower(line) == "y", nil
 }
 
+// AssociatedMode asks how associated files should be handled.
 func (p Prompter) AssociatedMode() (string, error) {
 	fmt.Fprintln(p.Out, "\nDelete associated items? (y/n/all): ")
 	return p.readLine()
 }
 
+// ConfirmPath asks whether to delete a specific path.
 func (p Prompter) ConfirmPath(path string) (bool, error) {
 	return p.Confirm(fmt.Sprintf("Delete %s? (y/n): ", filepath.Base(path)))
 }

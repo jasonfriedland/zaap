@@ -8,10 +8,12 @@ import (
 	"github.com/jasonfriedland/zaap/internal/catalog"
 )
 
+// AssociatedFiles scans common user Library locations.
 type AssociatedFiles struct {
 	Config Config
 }
 
+// Scan finds preferences, support files, caches, logs, and containers.
 func (s AssociatedFiles) Scan(ctx context.Context, app catalog.App) Iterator {
 	bundleID := identity(app)
 	home := s.Config.HomeDir

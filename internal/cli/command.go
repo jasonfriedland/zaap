@@ -15,6 +15,7 @@ import (
 	"github.com/jasonfriedland/zaap/internal/terminal"
 )
 
+// Options holds runtime dependencies and flag values.
 type Options struct {
 	ApplicationsDir  string
 	HomeDir          string
@@ -28,6 +29,7 @@ type Options struct {
 	Err              io.Writer
 }
 
+// Execute runs the zaap command and returns a process exit code.
 func Execute(ctx context.Context, args []string, in io.Reader, out io.Writer, errOut io.Writer) int {
 	options := Options{
 		ApplicationsDir:  "/Applications",
@@ -46,6 +48,7 @@ func Execute(ctx context.Context, args []string, in io.Reader, out io.Writer, er
 	return 0
 }
 
+// NewRootCommand builds the root cobra command.
 func NewRootCommand(ctx context.Context, options *Options) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "zaap",
