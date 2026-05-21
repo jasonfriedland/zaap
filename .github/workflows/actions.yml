@@ -10,7 +10,7 @@ jobs:
   list:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: List project files
         run: ls -la
 
@@ -20,9 +20,9 @@ jobs:
       matrix:
         go-version: ['1.24', '1.25', '1.26']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: ${{ matrix.go-version }}
       - name: Download dependencies
@@ -36,9 +36,9 @@ jobs:
       matrix:
         go-version: ['1.24', '1.25', '1.26']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: ${{ matrix.go-version }}
       - name: Build
