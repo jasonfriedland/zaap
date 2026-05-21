@@ -3,7 +3,7 @@
 BINARY_NAME=zaap
 
 test:
-	go test -v ./...
+	go test -v -cover ./...
 
 build:
 	go build -o $(BINARY_NAME) .
